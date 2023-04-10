@@ -1,270 +1,232 @@
-# ijkplayer
+# Custom compilation options
 
-Video player based on [ffplay](http://ffmpeg.org)
+This project can customize compilation options in the following ways.
 
-## Update for flutter
+- [Custom compilation options](#custom-compilation-options)
+  - [Get source](#get-source)
+  - [Initialization and compilation of projects](#initialization-and-compilation-of-projects)
+    - [Compiling environment](#compiling-environment)
+    - [General part](#general-part)
+    - [android](#android)
+    - [iOS](#ios)
+  - [Compile the product into the flutter project](#compile-the-product-into-the-flutter-project)
+    - [With iOS](#with-ios)
+    - [With andorid](#with-andorid)
+  - [LICENSE](#license)
 
-1. Update ios files for support get `CVPixelBufferRef`.
-2. Update android code for support get bitmap from ffplay.
-3. Notify rotate message to get video degree.
+## Get source
 
-## Download
+The modified source code is hosted on gitee.
 
-- Android:
-- Gradle
+`$ git clone https://gitee.com/kikt/ijkplayer_thrid_party.git ijkplayer`
 
-```
-# required
-allprojects {
-    repositories {
-        jcenter()
-    }
-}
+or
 
-dependencies {
-    # required, enough for most devices.
-    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
-    compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
+`$ git clone https://cjlspy@dev.azure.com/cjlspy/ijkplayer_for_flutter/_git/ijkplayer_for_flutter ijkplayer`
 
-    # Other ABIs: optional
-    compile 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
-    compile 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
-    compile 'tv.danmaku.ijk.media:ijkplayer-x86:0.8.8'
-    compile 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'
+## Initialization and compilation of projects
 
-    # ExoPlayer as IMediaPlayer: optional, experimental
-    compile 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.8'
-}
-```
+This section mainly refers to the official process. If you know something about ijkplayer, you can skip this section and look directly at the following links in flutter.
+If this part encounters problems, you can ask questions officially.
 
-- iOS
-- in coming...
+### Compiling environment
 
-### My Build Environment
+I'm macOS here. If you're linux, you can compile the Android part.
 
-- Common
-- Mac OS X 10.11.5
-- Android
-- [NDK r10e](http://developer.android.com/tools/sdk/ndk/index.html)
-- Android Studio 2.1.3
-- Gradle 2.14.1
-- iOS
-- Xcode 7.3 (7D175)
-- [HomeBrew](http://brew.sh)
-- ruby -e "\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-- brew install git
+IOS compilation can only be completed under macOS.
 
-### Latest Changes
+Windows: Please give up.
 
-- [NEWS.md](NEWS.md)
+### General part
 
-### Features
+This is the compilation option of ffmpeg in ijkplayer. You can modify this part of the code according to your own needs. The configuration here has the greatest impact on the size of the overall library file.
 
-- Common
-- remove rarely used ffmpeg components to reduce binary size [config/module-lite.sh](config/module-lite.sh)
-- workaround for some buggy online video.
-- Android
-- platform: API 9~23
-- cpu: ARMv7a, ARM64v8a, x86 (ARMv5 is not tested on real devices)
-- api: [MediaPlayer-like](android/ijkplayer/ijkplayer-java/src/main/java/tv/danmaku/ijk/media/player/IMediaPlayer.java)
-- video-output: NativeWindow, OpenGL ES 2.0
-- audio-output: AudioTrack, OpenSL ES
-- hw-decoder: MediaCodec (API 16+, Android 4.1+)
-- alternative-backend: android.media.MediaPlayer, ExoPlayer
-- iOS
-- platform: iOS 7.0~10.2.x
-- cpu: armv7, arm64, i386, x86_64, (armv7s is obselete)
-- api: [MediaPlayer.framework-like](ios/IJKMediaPlayer/IJKMediaPlayer/IJKMediaPlayback.h)
-- video-output: OpenGL ES 2.0
-- audio-output: AudioQueue, AudioUnit
-- hw-decoder: VideoToolbox (iOS 8+)
-- alternative-backend: AVFoundation.Framework.AVPlayer, MediaPlayer.Framework.MPMoviePlayerControlelr (obselete since iOS 8)
+Your mac must have the soft:
 
-### NOT-ON-PLAN
+- git
+- yasm
 
-- obsolete platforms (Android: API-8 and below; iOS: pre-6.0)
-- obsolete cpu: ARMv5, ARMv6, MIPS (I don't even have these types of devices…)
-- native subtitle render
-- avfilter support
+Later, if you don't need the HTTPS protocol, you can skip all openssl-related initialization and compilation.
 
-### Before Build
+### android
 
-```
-# install homebrew, git, yasm
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew install git
-brew install yasm
+- NDK r10e(Do not use higher versions, do not guarantee availability)
+- Xcode
+- Android SDK
 
-# add these lines to your ~/.bash_profile or ~/.profile
-# export ANDROID_SDK=<your sdk path>
-# export ANDROID_NDK=<your ndk path>
+Make sure your git, yasm, are in the environment variable.
 
-# on Cygwin (unmaintained)
-# install git, make, yasm
+Configure andorid SDK and NDK to environment variables.
+
+```bash
+export ANDROID_SDK=<your sdk path>
+export ANDROID_NDK=<your ndk path>
 ```
 
-- If you prefer more codec/format
+initial:
 
-```
-cd config
-rm module.sh
-ln -s module-default.sh module.sh
-cd android/contrib
-# cd ios
-sh compile-ffmpeg.sh clean
-```
-
-- If you prefer less codec/format for smaller binary size (include hevc function)
-
-```
-cd config
-rm module.sh
-ln -s module-lite-hevc.sh module.sh
-cd android/contrib
-# cd ios
-sh compile-ffmpeg.sh clean
-```
-
-- If you prefer less codec/format for smaller binary size (by default)
-
-```
-cd config
-rm module.sh
-ln -s module-lite.sh module.sh
-cd android/contrib
-# cd ios
-sh compile-ffmpeg.sh clean
-```
-
-- For Ubuntu/Debian users.
-
-```
-# choose [No] to use bash
-sudo dpkg-reconfigure dash
-```
-
-- If you'd like to share your config, pull request is welcome.
-
-### Build Android
-
-```sh
-git clone https://gitee.com/kikt/ijkplayer_thrid_party.git ijkplayer-android
-cd ijkplayer-android
-git checkout -B latest k0.8.8
-
+```bash
+./init-config.sh
 ./init-android.sh
+./init-android-openssl.sh
+```
 
+compile: origin
+
+```bash
 cd android/contrib
 ./compile-ffmpeg.sh clean
+./compile-openssl.sh clean
+./compile-openssl.sh all
 ./compile-ffmpeg.sh all
-
-# build ijkplayer with shell or cmake
-
-# build with shell
 cd ..
 ./compile-ijk.sh all
-# the so files will copy into the output
-
-# cmake, you must install
-cd android/ijkplayer
-./gradlew ijkplayer-cmake:assembleRelease
-# the so files will copy into the ijkplayer/so path
 ```
 
-### Build iOS
+compile: tillrun
 
-```sh
-git clone https://github.com/Bilibili/ijkplayer.git ijkplayer-ios
-cd ijkplayer-ios
-git checkout -B latest k0.8.8
-
-./init-ios.sh
-
-cd ios
+```bash
+cd android/contrib
 ./compile-ffmpeg.sh clean
-./compile-ffmpeg.sh all
-
-# Demo
-#     open ios/IJKMediaDemo/IJKMediaDemo.xcodeproj with Xcode
-#
-# Import into Your own Application
-#     Select your project in Xcode.
-#     File -> Add Files to ... -> Select ios/IJKMediaPlayer/IJKMediaPlayer.xcodeproj
-#     Select your Application's target.
-#     Build Phases -> Target Dependencies -> Select IJKMediaFramework
-#     Build Phases -> Link Binary with Libraries -> Add:
-#         IJKMediaFramework.framework
-#
-#         AudioToolbox.framework
-#         AVFoundation.framework
-#         CoreGraphics.framework
-#         CoreMedia.framework
-#         CoreVideo.framework
-#         libbz2.tbd
-#         libz.tbd
-#         MediaPlayer.framework
-#         MobileCoreServices.framework
-#         OpenGLES.framework
-#         QuartzCore.framework
-#         UIKit.framework
-#         VideoToolbox.framework
-#
-#         ... (Maybe something else, if you get any link error)
-#
+./compile-openssl.sh clean
+./compile-openssl.sh arm64
+./compile-ffmpeg.sh arm64
+cd ..
+./compile-ijk.sh arm64
 ```
 
-### Support (支持)
+After waiting here, you can copy so files in your corresponding CPU type. Here are the library files that will be applied to the project in the future.
 
-- Please do not send e-mail to me. Public technical discussion on github is preferred.
-- 请尽量在 github 上公开讨论[技术问题](https://github.com/bilibili/ijkplayer/issues)，不要以邮件方式私下询问，恕不一一回复。
+### iOS
 
-### License
+initial:
 
+```bash
+./init-config.sh
+./init-ios.sh
+./init-ios-openssl.sh
 ```
-Copyright (c) 2017 Bilibili
-Licensed under LGPLv2.1 or later
+
+compile: origin
+
+```bash
+cd ios
+./compile-openssl.sh clean
+./compile-ffmpeg.sh clean
+
+./compile-openssl.sh arm64
+./compile-openssl.sh x86_64
+./compile-openssl.sh i386
+./compile-openssl.sh lipo
+./compile-ffmpeg.sh arm64
+./compile-ffmpeg.sh x86_64
+./compile-ffmpeg.sh i386
+./compile-ffmpeg.sh lipo
 ```
 
-ijkplayer required features are based on or derives from projects below:
+compile: tillrun
 
-- LGPL
-  - [FFmpeg](http://git.videolan.org/?p=ffmpeg.git)
-  - [libVLC](http://git.videolan.org/?p=vlc.git)
-  - [kxmovie](https://github.com/kolyvan/kxmovie)
-  - [soundtouch](http://www.surina.net/soundtouch/sourcecode.html)
-- zlib license
-  - [SDL](http://www.libsdl.org)
-- BSD-style license
-  - [libyuv](https://code.google.com/p/libyuv/)
-- ISC license
-  - [libyuv/source/x86inc.asm](https://code.google.com/p/libyuv/source/browse/trunk/source/x86inc.asm)
+```bash
+cd ios
+./compile-openssl.sh clean
+./compile-ffmpeg.sh clean
 
-android/ijkplayer-exo is based on or derives from projects below:
+./compile-openssl.sh arm64
+./compile-openssl.sh lipo
+./compile-ffmpeg.sh arm64
+./compile-ffmpeg.sh lipo
+```
 
-- Apache License 2.0
-  - [ExoPlayer](https://github.com/google/ExoPlayer)
+Here's a quick way to use it directly after cleaning.
+`./compile-common.sh`
 
-android/example is based on or derives from projects below:
+The next step needs to be done in xcode. Here is Xcode 10.
 
-- GPL
-  - [android-ndk-profiler](https://github.com/richq/android-ndk-profiler) (not included by default)
+`$ open ios/IJKMediaPlayer/IJKMediaPlayer.xcodeproj`
 
-ios/IJKMediaDemo is based on or derives from projects below:
+Don't choose the SSL project here.
+![1](https://raw.githubusercontent.com/CaiJingLong/asset_for_picgo/master/20190322205338.png)
 
-- Unknown license
-  - [iOS7-BarcodeScanner](https://github.com/jpwiddy/iOS7-BarcodeScanner)
+Edit Scheme
+![1](https://raw.githubusercontent.com/CaiJingLong/asset_for_picgo/master/20190322205412.png)
 
-ijkplayer's build scripts are based on or derives from projects below:
+Release
+![1](https://raw.githubusercontent.com/CaiJingLong/asset_for_picgo/master/20190322205454.png)
 
-- [gas-preprocessor](http://git.libav.org/?p=gas-preprocessor.git)
-- [VideoLAN](http://git.videolan.org)
-- [yixia/FFmpeg-Android](https://github.com/yixia/FFmpeg-Android)
-- [kewlbear/FFmpeg-iOS-build-script](https://github.com/kewlbear/FFmpeg-iOS-build-script)
+command+b to compile library.
+![1](https://raw.githubusercontent.com/CaiJingLong/asset_for_picgo/master/20190322205548.png)
 
-### Commercial Use
+choose iOS device
+![1](https://raw.githubusercontent.com/CaiJingLong/asset_for_picgo/master/20190322205634.png)
 
-ijkplayer is licensed under LGPLv2.1 or later, so itself is free for commercial use under LGPLv2.1 or later
+compile with `command+b`
+![1](https://raw.githubusercontent.com/CaiJingLong/asset_for_picgo/master/20190322205727.png)
 
-But ijkplayer is also based on other different projects under various licenses, which I have no idea whether they are compatible to each other or to your product.
+open product
+![1](https://raw.githubusercontent.com/CaiJingLong/asset_for_picgo/master/20190322205727.png)
 
-[IANAL](https://en.wikipedia.org/wiki/IANAL), you should always ask your lawyer for these stuffs before use it in your product.
+cd into Products
+![1](https://raw.githubusercontent.com/CaiJingLong/asset_for_picgo/master/20190322205839.png)
+
+cd dir in shell.
+
+such as: `$ cd ~/Library/Developer/Xcode/DerivedData/IJKMediaPlayer-bpuwtjeeipcfgffpcjhynhwsndig/Build/Products`
+
+lipo your device and simulator.
+
+```bash
+lipo -create Release-iphoneos/IJKMediaFramework.framework/IJKMediaFramework Release-iphonesimulator/IJKMediaFramework.framework/IJKMediaFramework -output IJKMediaFramework
+
+cp IJKMediaFramework Release-iphoneos/IJKMediaFramework.framework
+
+open Release-iphoneos/
+```
+
+The IJKMediaFramework.framework is a folder.
+
+## Compile the product into the flutter project
+
+1. Download or clone the project to a separate folder in your flutter project
+
+2. Edit your pubspec.yaml
+
+from
+
+```yaml
+dependencies:
+  flutter_ijkplayer: ^0.x.x
+```
+
+to
+
+```yaml
+dependencies:
+  flutter_ijkplayer:
+    path: ./flutter_ijkplayer
+```
+
+### With iOS
+
+Copy IJKMediaFramework.framework folder into `flutter_ijkplayer/iOS`,
+
+and edit your podspec file:
+
+From
+
+![20190402141140.png](https://raw.githubusercontent.com/kikt-blog/image/master/img/20190402141140.png)
+
+to
+
+![20190402141203.png](https://raw.githubusercontent.com/kikt-blog/image/master/img/20190402141203.png)
+
+### With andorid
+
+Copy all ijkplayer so files into `flutter_ijkplayer/android/src/main/libs/${CPU}` and replace all.
+
+## LICENSE
+
+The project base on 0.8.8 of bilibili/ijkplayer. Before you use it, you need to make sure that your project meets ijkplayer's requirements.
+
+Part of the iOS code in the project comes from https://github.com/jadennn/flutter_ijk, all of which are based on the MIT protocol.
+
+The protocol used in my modified framework code is the same as bilibili/ijkplayer.
